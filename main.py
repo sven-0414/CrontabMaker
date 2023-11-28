@@ -29,20 +29,26 @@ def extract_table_rows(page_content):
     return rows
 
 def process_rows(rows):
-    unique_date_times = {}  # Dictionary för att lagra datum-tid och eventuell ytterligare information
+    unique_date_times = set()
+    last_date = None
 
     for row in rows:
         if len(row) < 2:
-            continue
+            continue  # Skip the row if it doesn't have at least two cells
 
-        date, time = row[0], row[1]
-        if not date:
-            continue
+        date = row[0].strip() if row[0].strip() else last_date
+        full_date_time = row[1].strip()
 
-        date_time = f"{date} {time}"
+        # Separera datum och tid om full_date_time innehåller båda
+        if date in full_date_time:
+            time = full_date_time.replace(date, '').strip()
+        else:
+            time = full_date_time
 
-        if date_time not in unique_date_times:
-            unique_date_times[date_time] = (date, time)  # eller annan relevant information
+        date_time_key = f"{date}_{time}"  # Using an underscore as a separator
+
+        unique_date_times.add(date_time_key)
+        last_date = date  # Update last_date with the current date
 
     return unique_date_times
 
@@ -53,6 +59,5 @@ if __name__ == "__main__":
         liga_id = sys.argv[1]
         resultat = fetchMatchTimes(liga_id)
         rows = extract_table_rows(resultat)
-        datesAndTimes = process_rows(rows)
-        for date_time, values in unique_date_times.items():
-            print(f"Date-Time: {date_time}, Values: {values}")
+        dates_and_times = process_rows(rows)
+        print(dates_and_times)
