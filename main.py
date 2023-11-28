@@ -8,11 +8,11 @@ if __name__ == "__main__":
         print("Skriptet behöver ett argument för seriens idnummer.")
     else:
         liga_id = sys.argv[1]
-        resultat = hamta_matchdata(liga_id)
+        resultat = fetchMachTimes(liga_id)
         print(resultat)
 
 
-def hamta_matchdata(liga_id):
+def fetchMachTimes(liga_id):
     try:
         url = f"https://stats.swehockey.se/ScheduleAndResults/Schedule/{liga_id}"
         response = requests.get(url)
