@@ -1,3 +1,8 @@
+'''Ett skrip för att skapa crontab för mina andra hockeyskript. Inparamtern är de fem siffrorna som anger serie i url:en på swehockey. 
+Skriptet ladda ner schedule and Results utvinner de två första kolumnerna där datum och tid anges för matcherna. Swehockey har två olika 
+matchlistor: en med omgången listad först och en med datumet först. Skriptet kan hantera båda som de ser ut idag och använde Beautiful
+ Soup för att göra det.'''
+
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import requests
@@ -5,7 +10,7 @@ import sys
 import re
 
 # Koppa upp mot swehockey och hämta Schdule and Result från en serie
-def fetchMatchTimes(liga_id):
+def fetchMatchTimes(liga_id):   # Laddar ner sida får swehockey
     try:
         url = f"https://stats.swehockey.se/ScheduleAndResults/Schedule/{liga_id}"
         response = requests.get(url)
@@ -14,50 +19,12 @@ def fetchMatchTimes(liga_id):
     except requests.RequestException as e:
         return f"Kunde inte hämta data: {e}"
 
-'''# utvinna tabellcellerna där matcherna redovisas
-def extract_table_rows(page_content):
-    soup = BeautifulSoup(page_content, 'html.parser')
-    table = soup.find('table', class_='tblContent')  # Hämtar tabellen "tblContent"
-
-    if not table:
-        return "No table found."
-
-    date_pattern = re.compile(r'\d{4}-\d{2}-\d{2}')  # Mönster för att identifiera datum (YYYY-MM-DD)
-    time_pattern = re.compile(r'\d{2}:\d{2}')       # Mönster för att identifiera tid (HH:MM)
-    last_date = None  # Variabel för att lagra det senaste giltiga datumet
-    unique_date_times = set()  # Set för att lagra unika datum-tid-kombinationer
-
-    for tr in table.find_all('tr'):
-        if tr.find('th'):  # Hoppa över raden om den innehåller <th>
-            continue
-
-        cells = tr.find_all('td')
-        if len(cells) < 1:
-            continue
-
-        cell0 = cells[0].get_text(strip=True)
-        cell1 = cells[1].get_text(strip=True) if len(cells) > 1 else ""
-
-        # Hantera datum och tid
-        if date_pattern.match(cell0):  # Om cell0 innehåller datum
-            date = cell0
-            last_date = date  # Uppdatera last_date med det nya datumet
-            time = cell1 if time_pattern.match(cell1) else ""  # Använd cell1 som tid om det är en tid
-        else:
-            date = last_date  # Använd last_date om cell0 inte innehåller ett datum
-            time = cell0 if time_pattern.match(cell0) else cell1  # Använd cell0 som tid om det är en tid, annars cell1
-
-        # Skapa en unik kombination av datum och tid
-        if date and time:  # Kontrollera att det finns ett giltigt datum och tid
-            date_time = f"{date} {time}"
-            unique_date_times.add(date_time)  # Lägg till i set för unika värden
-
-    return unique_date_times
-'''
-
+#Skapa ett objekt för BeautifulSoup
 def create_soup(page_content):
     return BeautifulSoup(page_content, 'html.parser')
 
+#Loopar genom tabellen tblContent, splittar tader och kolumner och hämtar de två första kolumnerna
+#ur vilka datum och tid utvinns. Reurnerar en lista med dessa'''
 def extract_first_two_cells(page_content):
     soup = create_soup(page_content)
     table = soup.find('table', class_='tblContent')
@@ -86,6 +53,7 @@ def extract_first_two_cells(page_content):
 
     return extracted_data
 
+#Används för att parsa fram datum och tid olika beroedne på om Shedule and Result redovisas med omgången först eller ej.
 def extract_date_time(cell, date_time_pattern, time_pattern, last_date):
     date_time_match = date_time_pattern.search(cell)
 
@@ -99,7 +67,8 @@ def extract_date_time(cell, date_time_pattern, time_pattern, last_date):
 
     return date, time
 
-
+#Omvandlar dautmlistan till en crontab som startar två timmar efter matchstart och kör var femte minut i en timme
+#kör även 23:55 alla matchdagar
 def create_crontab_entries(date_times):
     crontab_entries = []
     dates_for_extra_run = set()  # Håll reda på datum som behöver extra körning
