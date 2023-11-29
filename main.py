@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
 import requests
 import sys
 import re
@@ -13,10 +14,7 @@ def fetchMatchTimes(liga_id):
     except requests.RequestException as e:
         return f"Kunde inte hämta data: {e}"
 
-# från den hemsida som hämtats utvinna tabellraderna där matcherna redovisas
-from bs4 import BeautifulSoup
-import re
-
+# utvinna tabellcellerna där matcherna redovisas
 def extract_table_rows(page_content):
     soup = BeautifulSoup(page_content, 'html.parser')
     table = soup.find('table', class_='tblContent')  # Hämtar tabellen "tblContent"
@@ -56,6 +54,34 @@ def extract_table_rows(page_content):
 
     return unique_date_times
 
+def create_crontab_entries(date_times):
+    crontab_entries = []
+    current_time = datetime.now()  # Hämta nuvarande tid
+
+    for date_time in date_times:
+        try:
+            dt = datetime.strptime(date_time, '%Y-%m-%d %H:%M')
+            end_time = dt + timedelta(hours=2)
+
+            # Kontrollera om tiden redan har passerat
+            if end_time <= current_time:
+                continue
+
+            if end_time.minute == 0:
+                crontab_entry = f"0-55/5 {end_time.hour} {end_time.day} {end_time.month} * /opt/hockeytabeller.zsh"
+                crontab_entries.append(crontab_entry)
+            else:
+                crontab_entry = f"{end_time.minute}-55/5 {end_time.hour} {end_time.day} {end_time.month} * /opt/hockeytabeller.zsh"
+                crontab_entries.append(crontab_entry)
+
+                next_hour = (end_time + timedelta(hours=1)).hour
+                crontab_entry_next_hour = f"0-{end_time.minute}/5 {next_hour} {end_time.day} {end_time.month} * /opt/hockeytabeller.zsh"
+                crontab_entries.append(crontab_entry_next_hour)
+        except ValueError as e:
+            print(f"Ogiltigt datum/tid-format: {date_time}. Fel: {e}")
+
+    return crontab_entries
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Skriptet behöver ett argument för seriens idnummer.")
@@ -63,4 +89,6 @@ if __name__ == "__main__":
         liga_id = sys.argv[1]
         resultat = fetchMatchTimes(liga_id)
         rows = extract_table_rows(resultat)
-        print(rows)
+        crontab_lines = create_crontab_entries(rows)
+        for line in crontab_lines:
+            print(line)
