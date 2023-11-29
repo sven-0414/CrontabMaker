@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import sys
+import re
 
 # Koppa upp mot swehockey och hämta Schdule and Result från en serie
 def fetchMatchTimes(liga_id):
@@ -13,42 +14,45 @@ def fetchMatchTimes(liga_id):
         return f"Kunde inte hämta data: {e}"
 
 # från den hemsida som hämtats utvinna tabellraderna där matcherna redovisas
+from bs4 import BeautifulSoup
+import re
+
 def extract_table_rows(page_content):
     soup = BeautifulSoup(page_content, 'html.parser')
-    table = soup.find('table', class_='tblContent') #hämtar tabellen "tblContent"
+    table = soup.find('table', class_='tblContent')  # Hämtar tabellen "tblContent"
 
     if not table:
         return "No table found."
 
-    rows = []
+    date_pattern = re.compile(r'\d{4}-\d{2}-\d{2}')  # Mönster för att identifiera datum (YYYY-MM-DD)
+    time_pattern = re.compile(r'\d{2}:\d{2}')       # Mönster för att identifiera tid (HH:MM)
+    last_date = None  # Variabel för att lagra det senaste giltiga datumet
+    unique_date_times = set()  # Set för att lagra unika datum-tid-kombinationer
+
     for tr in table.find_all('tr'):
         if tr.find('th'):  # Hoppa över raden om den innehåller <th>
             continue
-        row_data = [td.get_text(strip=True) for td in tr.find_all('td')]
-        rows.append(row_data)
-    return rows
 
-def process_rows(rows):
-    unique_date_times = set()
-    last_date = None
+        cells = tr.find_all('td')
+        if len(cells) < 1:
+            continue
 
-    for row in rows:
-        if len(row) < 2:
-            continue  # Skip the row if it doesn't have at least two cells
+        cell0 = cells[0].get_text(strip=True)
+        cell1 = cells[1].get_text(strip=True) if len(cells) > 1 else ""
 
-        date = row[0].strip() if row[0].strip() else last_date
-        full_date_time = row[1].strip()
-
-        # Separera datum och tid om full_date_time innehåller båda
-        if date in full_date_time:
-            time = full_date_time.replace(date, '').strip()
+        # Hantera datum och tid
+        if date_pattern.match(cell0):  # Om cell0 innehåller datum
+            date = cell0
+            last_date = date  # Uppdatera last_date med det nya datumet
+            time = cell1 if time_pattern.match(cell1) else ""  # Använd cell1 som tid om det är en tid
         else:
-            time = full_date_time
+            date = last_date  # Använd last_date om cell0 inte innehåller ett datum
+            time = cell0 if time_pattern.match(cell0) else cell1  # Använd cell0 som tid om det är en tid, annars cell1
 
-        date_time_key = f"{date}_{time}"  # Using an underscore as a separator
-
-        unique_date_times.add(date_time_key)
-        last_date = date  # Update last_date with the current date
+        # Skapa en unik kombination av datum och tid
+        if date and time:  # Kontrollera att det finns ett giltigt datum och tid
+            date_time = f"{date} {time}"
+            unique_date_times.add(date_time)  # Lägg till i set för unika värden
 
     return unique_date_times
 
@@ -59,5 +63,4 @@ if __name__ == "__main__":
         liga_id = sys.argv[1]
         resultat = fetchMatchTimes(liga_id)
         rows = extract_table_rows(resultat)
-        dates_and_times = process_rows(rows)
-        print(dates_and_times)
+        print(rows)
