@@ -1,17 +1,17 @@
 # Swehockey Crontab Generator
 
-Detta Python-skript hämtar matchschema från stats.swehockey.se och genererar crontab-rader som kör ett annat skript strax efter att matcherna borde vara slut. Nyttigt för att till exempel uppdatera statistik efter avslutade matcher.
+This Python script fetches match schedules from stats.swehockey.se and generates crontab entries that run another script shortly after the matches should be finished. Useful for updating statistics after completed games.
 
-Eftersom skriptet är avsett att köras automatiskt innehåller det inga menyer, utan styrs via ett argument: seriens ID. Det hittar du i URL:en på Swehockey, till exempel siffrorn i slutet på den här URL:en:  
+Since the script is meant to run automatically, it contains no menus and is controlled via an argument: the series ID. You can find this in the URL on Swehockey, for example:  
 https://stats.swehockey.se/ScheduleAndResults/Overview/15986
 
-Skriptet är endast avsett för att schemalägga mina personliga skript som kördes för att uppdatera Wikipedias poängtabeller säsongen 2023/24. All annan användning sker på egen risk.
+The script was only intended for my personal scripts that ran to update Wikipedia point tables during the 2023/24 season. Any other use is at your own risk.
 
-## Användning
+## Usage
 ```bash
-python3 main.py <serie-id>
+python3 main.py <series-id>
 ```
-Exempel på utmatning:
+Example output:
 
 ```bash
 0-55/5 21 30 3 * /opt/hockeytabeller.zsh
@@ -20,9 +20,14 @@ Exempel på utmatning:
 
 ## Installation
 ```bash
+git clone https://github.com/sven-0414/CrontabGenerator.git
+cd CrontabGenerator
 pip install -r requirements.txt
 ```
+## Development Notes
 
-## Licens
+This project demonstrates AI-assisted development. The Python implementation was created through collaboration with ChatGPT, showcasing the ability to leverage AI tools for rapid prototyping and solving real automation problems despite limited Python experience.
 
-Koden distribueras under Apache 2.0, vilket i korthet betyder att man får använda, ändra och distribuera koden så länge man inkluderar erkännande till upphovsmannen.
+## License
+
+The code is distributed under Apache 2.0, which basically means you can use, modify and distribute the code as long as you include acknowledgment to the original author.
