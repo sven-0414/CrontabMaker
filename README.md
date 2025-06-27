@@ -2,10 +2,10 @@
 
 Detta Python-skript hämtar matchschema från stats.swehockey.se och genererar crontab-rader som kör ett annat skript strax efter att matcherna borde vara slut. Nyttigt för att till exempel uppdatera statistik efter avslutade matcher.
 
-Eftersom skriptet är avsett att köras automatiskt innehåller det inga menyer, utan styrs via ett argument: seriens ID. Det hittar du i URL:en på Swehockey, till exempel:  
+Eftersom skriptet är avsett att köras automatiskt innehåller det inga menyer, utan styrs via ett argument: seriens ID. Det hittar du i URL:en på Swehockey, till exempel siffrorn i slutet på den här URL:en:  
 https://stats.swehockey.se/ScheduleAndResults/Overview/15986
 
-Skriptet är endast avsett för mina personliga skript som kördes för att uppdatera Wikipedias poängtabeller säsongen 2023/24. All annan användning sker på egen risk.
+Skriptet är endast avsett för att schemalägga mina personliga skript som kördes för att uppdatera Wikipedias poängtabeller säsongen 2023/24. All annan användning sker på egen risk.
 
 ## Användning
 ```bash
